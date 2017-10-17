@@ -133,8 +133,8 @@
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
     <method>imc</method>
     <imc>
-      <!-- solver to solve linear equation system, can be octave or matlab -->
-      <solver>octave</solver>
+      <!-- solver to solve linear equation system, can be octave, numpy or matlab -->
+      <solver>numpy</solver>
     </imc>
     <!-- directory for user scripts -->
     <scriptpath>$PWD</scriptpath>
