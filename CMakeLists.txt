@@ -1,16 +1,17 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.1)
 
 project(csg-tutorials)
 
-set(PROJECT_VERSION "1.5-dev")
+set(PROJECT_VERSION "1.6-dev")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
 include(GNUInstallDirs)
 
-option(ENABLE_TESTING "Build and copy testing stuff" OFF)
-if(ENABLE_TESTING)
+option(ENABLE_REGRESSION_TESTING "Build and copy regression testing stuff" OFF)
+if(ENABLE_REGRESSION_TESTING)
+  option(ENABLE_EXPERIMENTAL_TESTS "Run more unstable regression tests as well" OFF)
   enable_testing()
   find_package(LMP)
   find_package(MDRUN_MPI)
@@ -44,6 +45,9 @@ if(ENABLE_TESTING)
     if(NOT LMP_FOUND AND DIR MATCHES "lammps")
       continue()
     endif()
+    if(NOT ENABLE_EXPERIMENTAL_TESTS AND DIR MATCHES "imc")
+      continue()
+    endif()
     string(REGEX MATCH ^.*/ DIR ${DIR})
     list(APPEND DIRS ${DIR})
   endforeach(DIR)
@@ -67,7 +71,7 @@ if(ENABLE_TESTING)
       set(CSG_MDRUN_STEPS 5000)
     elseif(DIR MATCHES "/cma/")
       set(CSG_MDRUN_STEPS 5000)
-    elseif(DIR MATCHES "/re($|_)")
+    elseif(DIR MATCHES "/(re|simplex)($|_)")
       set(CSG_MDRUN_STEPS 2500)
     endif()
     if(DIR MATCHES "gromacs-(multi|remd)")
@@ -86,6 +90,12 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${CMAKE_INSTALL_DATAD
 	PATTERN "inverse.log" EXCLUDE)
 
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+option(ENABLE_TESTING "Test if cmake worked" OFF)
+if(ENABLE_TESTING)
+  enable_testing()
+  add_test(UninstallExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+           -P ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/FileExists.cmake) 
+endif(ENABLE_TESTING)
 add_custom_target(uninstall-csg-tutorials COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 if(NOT TARGET uninstall)
   add_custom_target(uninstall)
